@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Set date
+      run: echo "DATE=$(date -u '+%Y-%m-%d')" >> $GITHUB_ENV
     - name: Install dependencies
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -39,3 +41,16 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Send email
+      if: ${{ secrets.RECIPIENT_EMAIL != '' }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.SMTP_SERVER }}
+        server_port: ${{ secrets.SMTP_PORT }}
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: "Daily arXiv Summary"
+        to: ${{ secrets.RECIPIENT_EMAIL }}
+        from: ${{ secrets.SMTP_USERNAME }}
+        secure: true
+        attachments: "data/${{ env.DATE }}.md"
