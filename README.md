@@ -18,6 +18,7 @@ Otherwise, you can directly use this repo. Please star it if you like :)
    3. `MODEL_NAME`: such as "deepseek-chat"
    4. `EMAIL`: your email for push to github
    5. `NAME`: your name for push to github
+   6. `RESEARCH_INTERESTS`: keywords used to sort papers. A LLM ranks each paper by how well it matches these interests, e.g. `AIGC, 视频生成, 视频编辑, Diffusion`
 7. Go to your-own-repo -> Actions -> arXiv-daily-ai-enhanced
 8. You can manually click **Run workflow** to test if it works well (it may takes about one hour). 
 By default, this action will automatically run every day
