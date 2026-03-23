@@ -729,7 +729,7 @@ function parseJsonlData(jsonlText, date) {
       
       let allCategories = Array.isArray(paper.categories) ? paper.categories : [paper.categories];
       
-      const primaryCategory = allCategories[0];
+      const primaryCategory = paper.source_category || allCategories[0];
       
       if (!result[primaryCategory]) {
         result[primaryCategory] = [];
@@ -742,6 +742,7 @@ function parseJsonlData(jsonlText, date) {
         url: paper.abs || paper.pdf || `https://arxiv.org/abs/${paper.id}`,
         authors: Array.isArray(paper.authors) ? paper.authors.join(', ') : paper.authors,
         category: allCategories,
+        source_category: primaryCategory,
         summary: summary,
         details: paper.summary || '',
         date: date,
