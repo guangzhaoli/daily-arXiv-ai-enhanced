@@ -1,5 +1,5 @@
-如果您觉得这个项目有帮助你，可以考虑给dw-dengwei打赏
+如果您觉得这个项目有帮助，可以在 fork 后替换成你自己的打赏信息，或者直接删除这个目录。
 
-注意：如果您希望打赏其它Fork仓库而不是[dw-dengwei/daily-arXiv-ai-enhanced](https://github.com/dw-dengwei/daily-arXiv-ai-enhanced/tree/main) 请不要扫码
+当前仓库默认不提供打赏二维码说明，请按需自行修改。
 
 ![code](./code.jpg)

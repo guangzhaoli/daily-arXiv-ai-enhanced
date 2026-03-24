@@ -13,6 +13,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      DATA_BRANCH: ${{ vars.DATA_BRANCH }}
 
     steps:
     - uses: actions/checkout@v4
@@ -213,32 +216,34 @@ jobs:
         fi
         
     - name: Inject repository info into data-config.js
-      if: steps.dedup_check.outputs.has_new_content == 'true'
       run: |
         echo "注入仓库信息到 data-config.js... / Injecting repository info into data-config.js..."
         
         # 获取仓库信息 / Get repository information
         REPO_OWNER="${{ github.repository_owner }}"
         REPO_NAME="${{ github.event.repository.name }}"
+        REPO_DATA_BRANCH="${DATA_BRANCH:-data}"
         
         echo "仓库所有者: $REPO_OWNER / Repository owner: $REPO_OWNER"
         echo "仓库名称: $REPO_NAME / Repository name: $REPO_NAME"
+        echo "数据分支: $REPO_DATA_BRANCH / Data branch: $REPO_DATA_BRANCH"
         
         # 注入仓库信息到 data-config.js / Inject repository info into data-config.js
         if [ -f "js/data-config.js" ]; then
           sed -i "s/PLACEHOLDER_REPO_OWNER/$REPO_OWNER/g" js/data-config.js
           sed -i "s/PLACEHOLDER_REPO_NAME/$REPO_NAME/g" js/data-config.js
+          sed -i "s/PLACEHOLDER_DATA_BRANCH/$REPO_DATA_BRANCH/g" js/data-config.js
           echo "✅ 仓库信息已注入到 js/data-config.js / Repository info injected into js/data-config.js"
         else
           echo "❌ ERROR: js/data-config.js not found!"
           exit 1
         fi
 
-    - name: Commit code changes to main branch
-      if: steps.dedup_check.outputs.has_new_content == 'true'
+    - name: Commit code changes to default branch
       run: |
         git config --global user.email "${{ vars.EMAIL }}"
         git config --global user.name "${{ vars.NAME }}"
+        default_branch="${DEFAULT_BRANCH}"
         
         # 添加所有代码文件，但排除数据文件 / Add all code files, but exclude data files
         git add js/data-config.js
@@ -252,26 +257,27 @@ jobs:
         if git diff --staged --quiet; then
           echo "没有代码变更需要提交 / No code changes to commit"
         else
-          git commit -m "chore: update data-config.js with repository info"
-          echo "代码变更已提交到 main 分支 / Code changes committed to main branch"
+          git commit -m "chore: update frontend repository metadata"
+          echo "代码变更已提交到 ${default_branch} 分支 / Code changes committed to ${default_branch} branch"
         fi
 
-    - name: Push code changes to main branch
-      if: steps.dedup_check.outputs.has_new_content == 'true'
+    - name: Push code changes to default branch
       run: |
         # 设置Git配置以处理自动合并 / Set Git config for automatic merging
         git config pull.rebase true
         git config rebase.autoStash true
+        default_branch="${DEFAULT_BRANCH}"
         
-        # 尝试推送代码变更到 main 分支 / Try to push code changes to main branch
+        # 尝试推送代码变更到默认分支 / Try to push code changes to the default branch
         for i in {1..3}; do
           echo "推送代码变更尝试 $i / Push code changes attempt $i"
-          if git push origin main; then
+          if git push origin "HEAD:${default_branch}"; then
             echo "代码变更推送成功 / Code changes pushed successfully"
             break
           else
-            echo "推送失败，拉取最新变更... / Push failed, pulling latest changes..."
-            git pull origin main --no-edit || true
+            echo "推送失败，获取默认分支最新变更... / Push failed, fetching the latest default branch changes..."
+            git fetch origin "${default_branch}" || true
+            git rebase "origin/${default_branch}" || true
             if [ $i -eq 3 ]; then
               echo "3次尝试后推送失败 / Failed to push after 3 attempts"
               exit 1
@@ -300,8 +306,9 @@ jobs:
       run: |
         git config --global user.email "${{ vars.EMAIL }}"
         git config --global user.name "${{ vars.NAME }}"
+        data_branch="${DATA_BRANCH:-data}"
         
-        echo "设置 data 分支... / Setting up data branch..."
+        echo "设置 ${data_branch} 分支... / Setting up ${data_branch} branch..."
         today=${{ steps.crawl_step.outputs.crawl_date }}
         
         # 在切换分支前，清理工作目录中可能冲突的未跟踪文件
@@ -312,23 +319,23 @@ jobs:
         rm -f data/*.md 2>/dev/null || true
         rm -f assets/file-list.txt 2>/dev/null || true
         
-        # 检查 data 分支是否存在 / Check if data branch exists
-        if git ls-remote --heads origin data | grep -q data; then
-          echo "data 分支已存在，切换到 data 分支 / Data branch exists, switching to data branch"
-          git fetch origin data:data
-          git checkout data
-          git pull origin data || true
+        # 检查 data 分支是否存在 / Check if the data branch exists
+        if git ls-remote --exit-code --heads origin "$data_branch" >/dev/null 2>&1; then
+          echo "${data_branch} 分支已存在，切换到 ${data_branch} 分支 / Data branch exists, switching to ${data_branch}"
+          git fetch origin "${data_branch}:${data_branch}"
+          git checkout "$data_branch"
+          git pull origin "$data_branch" || true
         else
-          echo "data 分支不存在，创建新分支 / Data branch does not exist, creating new branch"
+          echo "${data_branch} 分支不存在，创建新分支 / Data branch does not exist, creating new branch"
           # 创建空的 data 分支 / Create empty data branch
-          git checkout --orphan data
+          git checkout --orphan "$data_branch"
           git rm -rf --cached . 2>/dev/null || true
           # 确保 data 和 assets 目录存在 / Ensure data and assets directories exist
           mkdir -p data assets
-          echo "# Data Branch" > README.md
+          echo "# Data Branch (${data_branch})" > README.md
           git add README.md
           git commit -m "chore: initialize data branch"
-          git push origin data
+          git push origin "$data_branch"
         fi
         
         # 从临时目录恢复数据文件 / Restore data files from temporary directory
@@ -346,7 +353,7 @@ jobs:
           echo "没有数据变更需要提交 / No data changes to commit"
         else
           git commit -m "update: $today arXiv papers"
-          echo "数据变更已提交到 data 分支 / Data changes committed to data branch"
+          echo "数据变更已提交到 ${data_branch} 分支 / Data changes committed to ${data_branch} branch"
         fi
 
     - name: Push data changes to data branch
@@ -355,16 +362,17 @@ jobs:
         # 设置Git配置以处理自动合并 / Set Git config for automatic merging
         git config pull.rebase true
         git config rebase.autoStash true
+        data_branch="${DATA_BRANCH:-data}"
         
-        # 尝试推送数据变更到 data 分支 / Try to push data changes to data branch
+        # 尝试推送数据变更到数据分支 / Try to push data changes to the data branch
         for i in {1..3}; do
           echo "推送数据变更尝试 $i / Push data changes attempt $i"
-          if git push origin data; then
+          if git push origin "$data_branch"; then
             echo "数据变更推送成功 / Data changes pushed successfully"
             break
           else
             echo "推送失败，拉取最新变更... / Push failed, pulling latest changes..."
-            git pull origin data --no-edit || true
+            git pull origin "$data_branch" --no-edit || true
             if [ $i -eq 3 ]; then
               echo "3次尝试后推送失败 / Failed to push after 3 attempts"
               exit 1

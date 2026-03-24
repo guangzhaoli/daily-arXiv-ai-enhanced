@@ -1,12 +1,12 @@
 # About
 This tool will daily crawl https://arxiv.org and use LLMs to summarize them.
 
-See in: https://dw-dengwei.github.io/daily-arXiv-ai-enhanced/
+After enabling GitHub Pages on your fork, open it at: `https://<username>.github.io/<repo>/`
 
 # How to use
 This repo will daily crawl arXiv papers about **cs.CV, cs.GR and cs.CL**, and use **DeepSeek** to summarize the papers in **Chinese**.
 If you wish to crawl other arXiv categories, use other LLMs or other languages, please follow the bellow instructions.
-Otherwise, you can directly use this repo in https://dw-dengwei.github.io/daily-arXiv-ai-enhanced/ . Please star it if you like :)
+After deployment, you can use your own fork at `https://<username>.github.io/<repo>/`.
 
 **Instructions:**
 1. Fork this repo to your own account
@@ -20,11 +20,13 @@ Otherwise, you can directly use this repo in https://dw-dengwei.github.io/daily-
    3. `MODEL_NAME`: such as "deepseek-chat"
    4. `EMAIL`: your email for push to github
    5. `NAME`: your name for push to github
+   6. `DATA_BRANCH`: optional; branch used to publish generated data files. Defaults to "data"
 7. Go to your-own-repo -> Actions -> arXiv-daily-ai-enhanced
 8. You can manually click **Run workflow** to test if it works well (it may takes about one hour). 
 By default, this action will automatically run every day
 You can modify it in `.github/workflows/run.yml`
 9. If you wish to modify the content in `README.md`, do not directly edit README.md. You should edit `template.md`.
+10. Set up GitHub Pages: Go to your own repo -> Settings -> Pages. In `Build and deployment`, set `Source="Deploy from a branch"` and choose your repository default branch with folder `/(root)`. If you renamed the repository, your Pages URL will become `https://<username>.github.io/<repo>/`.
 
 # To-do list
 - [x] Replace markdown with GitHub pages front-end.
@@ -35,8 +37,8 @@ You can modify it in `.github/workflows/run.yml`
 {readme_content}
 
 # Related tools
-- ICML, ICLR, NeurIPS list: https://dw-dengwei.github.io/OpenReview-paper-list/index.html
+- ICML, ICLR, NeurIPS list: deploy the companion OpenReview paper list project separately if you need it.
 
 # Star history
-
-[![Star History Chart](https://api.star-history.com/svg?repos=dw-dengwei/daily-arXiv-ai-enhanced&type=Date)](https://www.star-history.com/#dw-dengwei/daily-arXiv-ai-enhanced&Date)
+If you want a star history badge for your fork, replace `<username>/<repo>` below with your own repository path:
+`https://api.star-history.com/svg?repos=<username>/<repo>&type=Date`
