@@ -10,13 +10,13 @@ const DATA_CONFIG = {
      * GitHub repository owner (username)
      * Can be injected by GitHub Actions, but runtime detection takes precedence.
      */
-    repoOwner: 'PLACEHOLDER_REPO_OWNER',
+    repoOwner: 'guangzhaoli',
 
     /**
      * GitHub repository name
      * Can be injected by GitHub Actions, but runtime detection takes precedence.
      */
-    repoName: 'PLACEHOLDER_REPO_NAME',
+    repoName: 'daily-arXiv-ai-enhanced',
 
     /**
      * Fallback upstream repository for local previews only
@@ -28,7 +28,7 @@ const DATA_CONFIG = {
      * Data branch name
      * Can be injected by GitHub Actions. Falls back to 'data'.
      */
-    dataBranch: 'PLACEHOLDER_DATA_BRANCH',
+    dataBranch: 'data',
     fallbackDataBranch: 'data',
 
     isPlaceholder: function(value) {
